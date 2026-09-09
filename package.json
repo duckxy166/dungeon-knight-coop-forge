@@ -1,0 +1,19 @@
+{
+  "name": "dungeon-knight-coop-forge",
+  "version": "1.9.2",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "build": "node build.mjs",
+    "check": "node --check src/loading.js && node --check src/time.js && node --check src/game.js && node --check src/net.js && node --check src/lobby.js && node --check src/ui.js && node --check src/mods.js && node --check src/i18n.js && node --check src/bundles/en.js && node --check src/bundles/th-weapons.js && node --check src/bundles/th.js && node --check src/editor.js && node --check src/audio.js && node --check src/bootstrap.js && node --check src/content/registry.js && find src/content -name '*.js' -not -name manifest.js -print0 | xargs -0 -n1 node --check && node --check server.mjs && node --check examples/mods/japanese-localization/main.js && node --check examples/mods/weapon-extension/main.js",
+    "test:ui": "node scripts/ui-smoke.mjs",
+    "test:editor": "node scripts/editor-smoke.mjs",
+    "test:multiplayer": "node scripts/multiplayer-smoke.mjs",
+    "validate": "npm run build && npm run test:ui && npm run test:mods && node validate.mjs && DK_VALIDATE_MOBILE=1 node validate.mjs && npm run test:editor && npm run test:multiplayer",
+    "test:mods": "node scripts/mod-smoke.mjs && node scripts/mod-zip-smoke.mjs && node scripts/mod-api-smoke.mjs && node scripts/weapon-extension-smoke.mjs"
+  }
+}

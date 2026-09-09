@@ -1,0 +1,7 @@
+(function(){'use strict';DKRegister.value("supportArt",{
+        vitality:{model:'heart'},muscle:{model:'fist'},reflex:{model:'glove'},boots:{model:'boot'},focus:{model:'lens'},armor:{model:'plate'},luck:{model:'dice'},magnet:{model:'magnet'},manaWell:{model:'well'},channeling:{model:'coil'},vampirism:{model:'chalice'},evasion:{model:'mask'},
+        aegisPulse:{model:'shield'},frostNova:{model:'globe'},thunderTotem:{model:'totem'},riftStep:{model:'portal'},bladeHalo:{model:'halo'},phaseClock:{model:'clock'},crimsonSurge:{model:'vial'},overclock:{model:'coil'},echoSeal:{model:'prism'},singularity:{model:'orb'},
+        dashCapacitor:{model:'capacitor'},phoenixSigil:{model:'sigil'},orbitingWard:{model:'ward'},executioner:{model:'medal'},manaShield:{model:'shield'},alchemist:{model:'flask'},scavenger:{model:'satchel'},calmMind:{model:'well'},gunslinger:{model:'scroll'},closeQuarters:{model:'blades'},spellEcho:{model:'prism'},biomeScholar:{model:'tablet'},
+        blastHarness:{model:'harness'},tacticalSling:{model:'sling'},coolingJacket:{model:'jacket'},shellBandolier:{model:'bandolier'},eliteBreaker:{model:'medal'},glassRelay:{model:'relay'},emergencyPlating:{model:'plate'},manaCapacitor:{model:'capacitor'},bloodCompass:{model:'compass'},momentumSpurs:{model:'spurs'},coinFoundry:{model:'foundry'},elementalCrucible:{model:'crucible'},
+        bloodLedger:{model:'ledger'},glassOath:{model:'oath'},eliteHunt:{model:'crown'},hasteCovenant:{model:'wing'}
+    },"skills/support-art");}());
