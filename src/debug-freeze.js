@@ -14,14 +14,19 @@
 (function () {
     'use strict';
 
-    var CONFIG = {
-        keyToggle: 'Backquote',
-        keyStep: 'Digit1',
-        keyFreeCam: 'Digit2',
-        keyOverlay: 'Digit3',
-        keySnapshot: 'Digit4',
-        maxDumps: 20
-    };
+    // Each action carries an F-key alternate: Backquote and the digit row move under
+    // non-US layouts and some remote/virtual keyboards report code:"" entirely, while
+    // F-keys report their code everywhere. F5/F10/F11/F12 are left alone (browser-reserved).
+    // An F-key reports the same string as both code and key, so it appears in both lists.
+    var ACTIONS = [
+        { name: 'toggle',   codes: ['Backquote', 'F9'], keys: ['`', '~', 'F9'] },
+        { name: 'step',     codes: ['Digit1', 'F8'],    keys: ['1', 'F8'] },
+        { name: 'freecam',  codes: ['Digit2', 'F7'],    keys: ['2', 'F7'] },
+        { name: 'overlay',  codes: ['Digit3', 'F6'],    keys: ['3', 'F6'] },
+        { name: 'snapshot', codes: ['Digit4', 'F4'],    keys: ['4', 'F4'] }
+    ];
+    var ARROW_CODES = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+    var CONFIG = { maxDumps: 20 };
 
     var frozen = false;
     var freeCamActive = false;
@@ -149,9 +154,10 @@
         overlayEl.style.opacity = frozen ? '0.9' : '0.35';
         var fps = 1000 / Math.max(1, realDeltaMs);
         var lines = [];
-        if (frozen) lines.push('● HARD FREEZE  (` to resume)');
+        if (frozen) lines.push('● HARD FREEZE  (` or F9 to resume)');
         lines.push('frame ' + frame + '   tick ' + tick + '   ' + fps.toFixed(0) + ' rt-fps');
-        if (frozen) lines.push(freeCamActive ? 'free-cam ON · arrows pan' : '1 step · 2 free-cam · 3 overlay · 4 dump');
+        if (frozen) lines.push(freeCamActive ? 'free-cam ON · arrows pan' : '1/F8 step · 2/F7 cam · 3/F6 overlay · 4/F4 dump');
+        else lines.push('` or F9 = hard freeze');
         overlayEl.textContent = lines.join('\n');
     }
 
@@ -168,18 +174,45 @@
         overlayEl = el;
     }
 
+    /** Never touch keystrokes meant for a text field or for the game's key-rebinding capture. */
+    function isTextEntry(e) {
+        if (document.body && document.body.hasAttribute('data-keybind-capture')) return true;
+        var t = e.target;
+        if (!t) return false;
+        if (t.isContentEditable) return true;
+        var tag = t.tagName;
+        return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+    }
+
+    function resolveAction(e) {
+        for (var i = 0; i < ACTIONS.length; i++) {
+            if (ACTIONS[i].codes.indexOf(e.code) >= 0) return ACTIONS[i].name;
+            // key is only consulted when the browser gave no usable code, so a layout
+            // that puts a different character on the physical key still resolves by code.
+            if (!e.code && ACTIONS[i].keys.indexOf(e.key) >= 0) return ACTIONS[i].name;
+        }
+        return '';
+    }
+
+    function arrowOf(e) {
+        if (ARROW_CODES.indexOf(e.code) >= 0) return e.code;
+        if (!e.code && ARROW_CODES.indexOf(e.key) >= 0) return e.key;
+        return '';
+    }
+
     function installKeys() {
         window.addEventListener('keydown', function (e) {
-            if (e.repeat) return;
+            if (e.repeat || e.isComposing || e.keyCode === 229 || isTextEntry(e)) return;
             var handled = true;
-            switch (e.code) {
-                case CONFIG.keyToggle: toggle(); break;
-                case CONFIG.keyStep: step(1); break;
-                case CONFIG.keyFreeCam: freeCamActive = !freeCamActive; break;
-                case CONFIG.keyOverlay: overlayVisible = !overlayVisible; break;
-                case CONFIG.keySnapshot: snapshot('hotkey'); break;
-                case 'ArrowUp': case 'ArrowDown': case 'ArrowLeft': case 'ArrowRight':
-                    if (frozen && freeCamActive) camKeys[e.code] = true; else handled = false;
+            var arrow = arrowOf(e);
+            switch (arrow ? 'arrow' : resolveAction(e)) {
+                case 'toggle': toggle(); break;
+                case 'step': step(1); break;
+                case 'freecam': freeCamActive = !freeCamActive; break;
+                case 'overlay': overlayVisible = !overlayVisible; break;
+                case 'snapshot': snapshot('hotkey'); break;
+                case 'arrow':
+                    if (frozen && freeCamActive) camKeys[arrow] = true; else handled = false;
                     break;
                 default:
                     // Menu-less rule: while frozen, swallow every other key so a stray
@@ -190,9 +223,10 @@
         }, { capture: true });
 
         window.addEventListener('keyup', function (e) {
-            if (Object.prototype.hasOwnProperty.call(camKeys, e.code)) {
+            var arrow = arrowOf(e);
+            if (arrow && Object.prototype.hasOwnProperty.call(camKeys, arrow)) {
                 var wasActive = frozen && freeCamActive;
-                camKeys[e.code] = false;
+                camKeys[arrow] = false;
                 if (wasActive) { e.preventDefault(); e.stopPropagation(); }
             }
         }, { capture: true });
@@ -200,7 +234,7 @@
 
     installOverlay();
     installKeys();
-    console.log('[freeze] Hard Freeze ready (Single Player only) — ` freeze/unfreeze · 1 step · 2 free-cam · 3 overlay · 4 dump snapshot');
+    console.log('[freeze] Hard Freeze ready (Single Player only) — ` or F9 freeze/unfreeze · 1/F8 step · 2/F7 free-cam · 3/F6 overlay · 4/F4 dump snapshot');
 
     window.DKFreeze = {
         register: register,

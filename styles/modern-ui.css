@@ -1238,7 +1238,7 @@ body[data-ui-motion='reduced'] .main-menu[aria-hidden='false'] > .cinematic-menu
 .waiting-screen[data-ui-hidden='true'] .waiting-shell { visibility: hidden; opacity: 0; transform: translate3d(0, -18px, 0); pointer-events: none; transition-delay: 0s, 0s, var(--duration-normal); }
 .waiting-screen[data-ui-hidden='true'] .waiting-ui-toggle { padding: 7px 9px; border: 1px solid var(--ui-line); background: rgba(0, 0, 0, .38); }
 
-/* Match HUD: three connected, wider meters with no track/background surface. */
+/* Base meter transforms; the readable combat layout is defined below. */
 .stats-left.hud-vitals { width: 390px; }
 .hud-meter-stack { width: 100%; gap: 0; }
 .hud-meter { min-height: 6px; grid-template-columns: minmax(0, 1fr) 98px; gap: 10px; }
@@ -1733,4 +1733,63 @@ html[lang='ja'] #editor-test-ui * { font-family: 'Ubuntu', system-ui, sans-serif
     .keybind-list { grid-template-columns: 1fr; }
     #debug-overlay { bottom: 8px; left: 8px; width: min(300px, calc(100vw - 16px)); padding: 7px 9px; }
     .mobile-layout-guide { top: max(8px, env(safe-area-inset-top)); }
+}
+
+/* Combat HUD: labels flow above tracks so values never compete for width. */
+.stats-left.hud-vitals {
+    width: min(340px, 42vw);
+    box-sizing: border-box;
+    padding: 14px 16px;
+    gap: 10px;
+    background: rgba(12, 15, 22, .92);
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: 10px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, .3);
+}
+.hud-player-line { font-size: .75rem; color: #e3e7ef; }
+.hud-meter-stack { gap: 10px; }
+.hud-meter { grid-template-columns: minmax(0, 1fr); gap: 5px; }
+.hud-meter-copy { grid-row: 1; font-size: .7rem; color: #d7deeb; gap: 8px; }
+.hud-meter .bar-text { font-size: .8rem; font-weight: 700; color: #fff; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.hud-meter .bar-container { height: 10px; border-radius: 3px; background: #303746 !important; }
+.hp-meter .bar-container { height: 20px; }
+.hp-meter .hud-meter-copy { color: #ffb5bd; }
+.hp-meter .bar-text { font-size: 1rem; }
+#hp-bar { background: #ff596e; opacity: 1; }
+#armor-bar { background: #c5d5e8; opacity: 1; }
+#mana-bar { background: #56c9f0; opacity: 1; }
+.hud-resource-line { margin: 0; padding-top: 2px; }
+.coin-display { font-size: .7rem; color: #e5d7af; }
+.coin-display strong { font-size: .9rem; color: #ffe1a0; }
+body[data-ui-screen='run'] #party-hud { top: 280px; }
+.desktop-ui { bottom: max(22px, env(safe-area-inset-bottom)); }
+.skill-row { gap: 8px; padding: 8px; border-radius: 10px; background: rgba(12, 15, 22, .94); }
+.skill-icon { width: 76px; height: 64px; border-radius: 5px; font-size: .75rem; color: #e2e8f0; }
+.skill-icon.active-skill { min-width: 100px; }
+.skill-label { gap: 8px; }
+.skill-label b { height: 24px; min-width: 24px; font-size: .7rem; }
+.skill-icon.dash-skill { width: 144px; height: 64px; border: 2px solid #69d9ff; background: #123c50; }
+.skill-icon.dash-skill .skill-label { position: relative; z-index: 3; flex-direction: row; color: #f0fbff; font-weight: 700; }
+.skill-icon.dash-skill b { color: #fff; border-color: #88dfff; padding: 0 7px; }
+.skill-icon.dash-skill.is-cooldown .skill-label { opacity: 1; transform: translateY(-12px); }
+.skill-icon.dash-skill.is-cooldown { border-color: #678496; background: #182631; }
+#desktop-dash-cd-number { top: 73%; font-size: .9rem; }
+.dash-btn { width: 68px; height: 68px; }
+#mobile-dash-cd-number { font-size: 1rem; }
+@media (max-width: 760px) {
+    .stats-left.hud-vitals { width: min(280px, 53vw); padding: 10px; gap: 6px; }
+    .hud-meter-stack { gap: 6px; }
+    .hud-meter { grid-template-columns: minmax(0, 1fr); gap: 3px; }
+    .hud-meter-copy { font-size: .65rem; }
+    .hud-meter .bar-text { font-size: .72rem; }
+    .hp-meter .bar-container { height: 16px; }
+    .hud-meter-copy > span { display: inline; }
+    .hud-meter-copy { justify-content: space-between; }
+    .hud-player-line { display: none; }
+    body[data-ui-screen='run'] #party-hud { top: 200px; }
+}
+@media (max-width: 420px) {
+    .stats-left.hud-vitals { width: 53vw; padding: 8px; }
+    .hud-meter-copy > span { display: none; }
+    .hud-meter-copy { justify-content: flex-start; }
 }

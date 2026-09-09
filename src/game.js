@@ -590,34 +590,62 @@ var PALACE_ART = CONTENT.palaceArt || Object.create(null);
     function Pickup(x, y, kind, value, targetId, resourceId) {
         this.x = x; this.y = y; this.kind = kind; this.value = value || 1;
         this.netId=netPickupId++;this.targetId=targetId||((mainPlayer||player)&&((mainPlayer||player).netId))||'local';this.resourceId=RESOURCE_DEFS[resourceId]?resourceId:'';
-        this.prevX = x; this.prevY = y; this.radius = kind === 'coin' ? 6 : kind==='resource'?8:7; this.dead = false; this.magnet = kind === 'mana'||kind==='resource'; this.vacuum = kind === 'mana'||kind==='resource'; this.spark = kind === 'coin' ? 0 : rand(0, TAU);
-        this.vx = kind === 'mana' ? 0 : kind==='resource' ? rand(-1.4,1.4) : rand(-4, 4); this.vy = kind === 'mana' ? 0 : kind==='resource' ? rand(-1.4,1.4) : rand(-4, 4);
+        this.prevX = x; this.prevY = y; this.radius = kind === 'coin' ? 6 : kind==='resource'?8:7; this.dead = false; this.magnet = kind === 'mana'||kind==='resource'||kind==='coin'; this.vacuum = kind === 'mana'||kind==='resource'; this.spark = kind === 'coin' ? 0 : rand(0, TAU);
+        this.vx = kind === 'mana' ? 0 : kind==='resource' ? rand(-1.4,1.4) : rand(-3.5, 3.5); this.vy = kind === 'mana' ? 0 : kind==='resource' ? rand(-1.4,1.4) : rand(-3.5, 3.5);
+        this.age = 0;
     }
     function pickupRecipient(item){if(item&&item.targetId)return playerByNetId(item.targetId);return mainPlayer||player;}
     function grantPickup(item,target){if(!item||!target)return false;if(item.kind==='coin'){addWallet(target,item.value);playSound('loot.coin',{x:item.x,y:item.y});}else if(item.kind==='mana'){target.mana=Math.min(target.maxMana,target.mana+item.value);if(target.cores.neon){target.overclock=Math.max(target.overclock,72);addRing(target.x,target.y,'#48ffd0',62,3);}playSound('loot.mana',{x:item.x,y:item.y});}else if(item.kind==='resource'&&RESOURCE_DEFS[item.resourceId]){addResource(target,item.resourceId,item.value);if(target===player)addFloat('+'+item.value+' '+RESOURCE_DEFS[item.resourceId].short,target.x,target.y-38,RESOURCE_DEFS[item.resourceId].color);playSound('loot.resource',{x:item.x,y:item.y});}else{target.hp=Math.min(target.maxHp,target.hp+item.value);playSound('loot.heal',{x:item.x,y:item.y});}return true;}
     Pickup.prototype.update = function (step) {
+        this.age = (this.age || 0) + step;
         this.prevX = this.x; this.prevY = this.y; if(this.kind!=='coin')this.spark += .16 * step;
         var drag=frameDecay(.89,step);this.vx *= drag; this.vy *= drag; this.x += this.vx * step; this.y += this.vy * step;
         var target=pickupRecipient(this);if(!target)return;var d = dist(this, target);
         if (d < target.stats.pickup) this.magnet = true;
         if (this.magnet) {
             var a = Math.atan2(target.y - this.y, target.x - this.x);
-            var flySpeed = this.kind==='mana'||this.kind==='resource' ? clamp(42+d*.06,42,78) : this.vacuum ? clamp(22 + d * .035, 22, 52) : 12;
-            this.x += Math.cos(a) * flySpeed * step; this.y += Math.sin(a) * flySpeed * step;
+            var flySpeed;
+            if (this.kind === 'coin') {
+                if (this.vacuum) {
+                    flySpeed = clamp(24 + d * .04, 24, 52);
+                } else if (this.age < 10) {
+                    flySpeed = 0;
+                } else {
+                    var suckProgress = Math.min(1, (this.age - 10) / 18);
+                    flySpeed = clamp((4 + suckProgress * 8) + d * .02, 4.5, 14);
+                }
+            } else {
+                flySpeed = this.kind==='mana'||this.kind==='resource' ? clamp(42+d*.06,42,78) : this.vacuum ? clamp(22 + d * .035, 22, 52) : 12;
+            }
+            if (flySpeed > 0) {
+                this.x += Math.cos(a) * flySpeed * step; this.y += Math.sin(a) * flySpeed * step;
+            }
         }
         d = dist(this, target);
         if (d < this.radius + target.radius + 3) {
             grantPickup(this,target);
-            if(this.kind!=='coin')addParticles(this.x, this.y, this.kind === 'mana' ? '#3498db' : this.kind==='resource'&&RESOURCE_DEFS[this.resourceId]?RESOURCE_DEFS[this.resourceId].color:'#2ecc71', 4, 2);
+            addParticles(this.x, this.y, this.kind === 'mana' ? '#3498db' : this.kind === 'coin' ? '#f1c40f' : this.kind==='resource'&&RESOURCE_DEFS[this.resourceId]?RESOURCE_DEFS[this.resourceId].color:'#2ecc71', 4, 2);
             this.dead = true;
         }
     };
     Pickup.prototype.draw = function () {
         var resourceDef=this.kind==='resource'&&RESOURCE_DEFS[this.resourceId],c = this.kind === 'coin' ? '#f1c40f' : this.kind === 'mana' ? '#3498db' : resourceDef?resourceDef.color:'#2ecc71';
         var target=pickupRecipient(this);
-        if (this.vacuum && this.kind!=='coin'&&target) {
-            ctx.save(); ctx.globalAlpha = .38; ctx.strokeStyle = c; ctx.lineWidth = 3; ctx.beginPath();
-            ctx.moveTo(this.x, this.y); ctx.lineTo(this.x - (target.x - this.x) * .055, this.y - (target.y - this.y) * .055); ctx.stroke(); ctx.restore();
+        if ((this.vacuum || (this.kind==='coin' && this.magnet && this.age >= 9)) && target) {
+            ctx.save(); ctx.globalAlpha = this.kind==='coin' ? .65 : .38; ctx.strokeStyle = c; ctx.lineWidth = this.kind==='coin' ? 2.5 : 3; ctx.beginPath();
+            ctx.moveTo(this.x, this.y);
+            if (this.kind === 'coin') {
+                ctx.lineTo(this.prevX, this.prevY);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.globalAlpha = .3;
+                ctx.lineWidth = 2;
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x - (target.x - this.x) * .075, this.y - (target.y - this.y) * .075);
+            } else {
+                ctx.lineTo(this.x - (target.x - this.x) * .055, this.y - (target.y - this.y) * .055);
+            }
+            ctx.stroke(); ctx.restore();
         }
         ctx.save(); ctx.translate(this.x, this.y); ctx.shadowBlur = this.kind==='coin' ? 0 : this.vacuum ? 16 : 7;
         ctx.shadowColor = c; ctx.fillStyle = c;if(resourceDef){ctx.rotate(this.spark);ctx.beginPath();ctx.moveTo(0,-this.radius-2);ctx.lineTo(this.radius,0);ctx.lineTo(0,this.radius+2);ctx.lineTo(-this.radius,0);ctx.closePath();ctx.fill();ctx.strokeStyle='#fff';ctx.globalAlpha=.65;ctx.lineWidth=1.5;ctx.stroke();ctx.globalAlpha=1;}else{ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, TAU); ctx.fill();}
