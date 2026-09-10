@@ -2,6 +2,7 @@
     'use strict';
     var content = window.DKContent = {
         weapons: Object.create(null),
+        models3d: { weapons:Object.create(null), players:Object.create(null), enemies:Object.create(null), projectiles:Object.create(null), effects:Object.create(null) },
         weaponAnimations: Object.create(null),
         weaponBehaviors: { ids: Object.create(null), families: Object.create(null), handlers: Object.create(null) },
         weaponRenderers: Object.create(null),
@@ -25,6 +26,12 @@
         return {pose:pose,duration:duration,back:back,turn:turn,lunge:lunge,lift:lift,ghosts:ghosts,accent:accent,count:count,radius:radius,phase:phase};
     };
     window.DKRegister = {
+        model3d: function (kind, id, definition, moduleName) {
+            if (!content.models3d[kind] || !id || !definition || !Array.isArray(definition.parts)) throw new Error('Invalid 3D model: ' + kind + '/' + id);
+            if (definition.parts.length > 64 || definition.parts.some(function(part){return !part || ['size','position','rotation'].some(function(key){return part[key]!==undefined&&(!Array.isArray(part[key])||part[key].length!==3||part[key].some(function(n){return typeof n!=='number'||!isFinite(n);}));});})) throw new Error('3D parts require finite XYZ triples; at most 64 parts.');
+            content.model3dRevision=(content.model3dRevision||0)+1;
+            content.models3d[kind][id] = definition; mark(moduleName); return definition;
+        },
         value: replace,
         weapons: function (definitions, animations, moduleName) {
             Object.keys(definitions || {}).forEach(function (id) { content.weapons[id] = definitions[id]; });

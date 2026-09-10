@@ -152,6 +152,7 @@
     c.restore();
   }
   function drawShadowBody(boss, api, alpha, opts) {
+    if (api.ctx.isWorld3D) return;
     opts = opts || {};
     var c = api.ctx,
       t = api.visualTick(),

@@ -433,6 +433,8 @@
         var check = validateRecord(record, installed);
         if (check.errors.length) throw new Error(check.errors.join('\n'));
         var api = apiFor(record), module = { exports:{} };
+        var visualGroups={weaponRenderers:'weapons',projectileRenderers:'projectiles',projectileOverlays:'projectiles',projectileImpactRenderers:'effects',slashRenderers:'effects',weaponAuras:'effects'},visualBefore={};
+        Object.keys(visualGroups).forEach(function(group){visualBefore[group]=Object.assign({},window.DKContent[group]);});
         applyManifestContent(record,api);
         var scripts = [];
         if (record.manifest.main !== false) scripts.push(record.manifest.main || 'main.js');
@@ -448,6 +450,7 @@
         var exported = module.exports || {};
         loaded[record.id] = { record:record, api:api, exports:exported, warnings:check.warnings };
         if (typeof exported.preload === 'function') exported.preload(api);
+        if(window.DKContent.models3d)Object.keys(visualGroups).forEach(function(group){var kind=visualGroups[group],legacyIds=Object.keys(window.DKContent[group]||{}).filter(function(id){return visualBefore[group][id]!==window.DKContent[group][id]&&!window.DKContent.models3d[kind][id];});if(legacyIds.length)loaded[record.id].warnings.push('3D: Canvas '+group+' artwork is not used. Register model3d("'+kind+'", id, definition) to replace the default 3D models for: '+legacyIds.join(', '));});
         emit('modLoaded',{id:record.id,manifest:record.manifest,api:api});
         return loaded[record.id];
     }
@@ -552,6 +555,7 @@
         var multiplayer=record.manifest.multiplayer||'unspecified';
         validation.errors.forEach(function(x){diagnostics.push('<div class="mod-diagnostic error">'+escapeHtml(x)+'</div>');});
         validation.warnings.forEach(function(x){diagnostics.push('<div class="mod-diagnostic warning">'+escapeHtml(x)+'</div>');});
+        if(loaded[record.id])loaded[record.id].warnings.filter(function(x){return x.indexOf('3D:')===0;}).forEach(function(x){diagnostics.push('<div class="mod-diagnostic warning">'+escapeHtml(x)+'</div>');});
         if(loadErrors[record.id])diagnostics.push('<div class="mod-diagnostic error">Load error: '+escapeHtml(loadErrors[record.id])+'</div>');
         return '<div class="mod-row-details">'+
             '<p>'+escapeHtml(record.manifest.description||'No description provided.')+'</p>'+

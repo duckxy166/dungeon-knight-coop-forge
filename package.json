@@ -14,6 +14,15 @@
     "test:editor": "node scripts/editor-smoke.mjs",
     "test:multiplayer": "node scripts/multiplayer-smoke.mjs",
     "validate": "npm run build && npm run test:ui && npm run test:mods && node validate.mjs && DK_VALIDATE_MOBILE=1 node validate.mjs && npm run test:editor && npm run test:multiplayer",
-    "test:mods": "node scripts/mod-smoke.mjs && node scripts/mod-zip-smoke.mjs && node scripts/mod-api-smoke.mjs && node scripts/weapon-extension-smoke.mjs"
+    "test:mods": "node scripts/mod-smoke.mjs && node scripts/mod-zip-smoke.mjs && node scripts/mod-api-smoke.mjs && node scripts/weapon-extension-smoke.mjs",
+    "preview": "node scripts/preview.mjs",
+    "test:3d": "npm run build && node scripts/render3d-smoke.mjs"
+  },
+  "dependencies": {
+    "three": "0.186.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "esbuild": "0.28.2"
   }
 }

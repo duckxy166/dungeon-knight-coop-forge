@@ -1,9 +1,29 @@
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { build as bundle } from 'esbuild';
 
 const here = new URL('./', import.meta.url);
 const rootDir = fileURLToPath(here);
+const threeLicense=await readFile(new URL('node_modules/three/LICENSE',here),'utf8');
+await writeFile(new URL('assets/THREE_LICENSE.txt',here),threeLicense);
+let isolatedRenderUuids=false;
+await bundle({
+    entryPoints:[fileURLToPath(new URL('src/render3d/index.js',here))],
+    outfile:fileURLToPath(new URL('src/render3d.bundle.js',here)),bundle:true,format:'iife',target:'es2020',minify:true,
+    supported:{'template-literal':false},legalComments:'inline',banner:{js:'/*\n'+threeLicense+'\n*/'},
+    // Three's UUID creation must not consume the gameplay Math.random stream.
+    plugins:[{name:'isolated-render-uuids',setup(builder){builder.onLoad({filter:/three[\\/](?:src[\\/]math[\\/]MathUtils|build[\\/]three\.core)\.js$/},async({path})=>{
+        let contents=await readFile(path,'utf8');
+        const uuidWords=/const d([0-3]) = Math\.random\(\) \* 0xffffffff \| 0;/g;
+        if([...contents.matchAll(uuidWords)].length!==4)throw new Error('Review Three.js UUID isolation after upgrading Three.js.');
+        contents=contents.replace(uuidWords,(_,index)=>(index==='0'?'const renderEntropy = new Uint32Array(4); crypto.getRandomValues(renderEntropy);\n':'')+'const d'+index+' = renderEntropy['+index+'];');
+        isolatedRenderUuids=true;
+        return{contents,loader:'js'};
+    });}}]
+});
+if(!isolatedRenderUuids)throw new Error('Three.js UUID isolation did not run.');
+const renderer3d = await readFile(new URL('src/render3d.bundle.js',here),'utf8');
 const source = await readFile(new URL('index.html', here), 'utf8');
 let css = await readFile(new URL('styles/game.css', here), 'utf8');
 let modernCss = await readFile(new URL('styles/modern-ui.css', here), 'utf8');
@@ -40,10 +60,10 @@ async function walkAudio(url, base) {
         const child = new URL(entry.name + (entry.isDirectory() ? '/' : ''), url);
         if (entry.isDirectory()) {
             Object.assign(out, await walkAudio(child, base));
-        } else if (entry.name.endsWith('.mp3') || entry.name.endsWith('.ogg')) {
+        } else if (/\.(mp3|ogg|wav)$/.test(entry.name)) {
             const relPath = relative(fileURLToPath(base), fileURLToPath(child)).replace(/\\/g, '/');
             const data = await readFile(child);
-            const mime = entry.name.endsWith('.ogg') ? 'audio/ogg' : 'audio/mpeg';
+            const mime = entry.name.endsWith('.wav') ? 'audio/wav' : entry.name.endsWith('.ogg') ? 'audio/ogg' : 'audio/mpeg';
             out['assets/' + relPath] = `data:${mime};base64,${data.toString('base64')}`;
         }
     }
@@ -57,13 +77,14 @@ const embeddedAudio = await walkAudio(new URL('assets/audio/', here), new URL('a
 if (!source.includes('<canvas id="gameCanvas"') || !game.includes('window.DKGame') || !net.includes('window.DKNet')) throw new Error('The v1.9.2 source tree is incomplete.');
 css = css.replace("url('../assets/ubuntu-regular.ttf')", `url('data:font/ttf;base64,${ubuntuFont.toString('base64')}')`);
 editorCss = editorCss.replace("url('../assets/ubuntu-regular.ttf')", `url('data:font/ttf;base64,${ubuntuFont.toString('base64')}')`);
-const loadingTotal = 9 + moduleUrls.length + 13;
+const loadingTotal = 9 + moduleUrls.length + 14;
 const gameInline = [
     "window.DK_STANDALONE_OFFLINE=true;",
     "window.DK_AUDIO_EMBEDDED = " + JSON.stringify(embeddedAudio) + ";",
     audio,
     registry,
     ...modules,
+    'if(window.DK3D)window.DK3D.captureBuiltins();',
     bundleEn,
     bundleThWeapons,
     bundleTh,
@@ -79,7 +100,7 @@ const html = source
     .replace('<link rel="stylesheet" href="styles/game.css">', () => `<style>\n${css}\n</style>`)
     .replace('<link rel="stylesheet" href="styles/modern-ui.css">', () => `<style>\n${modernCss}\n</style>`)
     .replace('<link rel="stylesheet" href="styles/editor.css">', () => `<style>\n${editorCss}\n</style>`)
-    .replace('    <script src="src/loading.js"></script>\n    <script src="src/content/registry.js"></script>\n    <script src="src/content/manifest.js"></script>\n    <script src="src/bootstrap.js"></script>', () => `    <script>\n${loading}\nwindow.DKLoader.configure(${loadingTotal}, 9);\n</script>\n    <script>\n${gameInline}\n</script>\n    <script>\n${net}\n</script>\n    <script>
+    .replace('    <script src="src/loading.js"></script>\n    <script src="src/content/registry.js"></script>\n    <script src="src/content/manifest.js"></script>\n    <script src="src/bootstrap.js"></script>', () => `    <script>\n${loading}\nwindow.DKLoader.configure(${loadingTotal}, 9);\n</script>\n    <script>\n${renderer3d}\n</script>\n    <script>\n${gameInline}\n</script>\n    <script>\n${net}\n</script>\n    <script>
 Promise.resolve(window.DK_BOOT_PROMISE).then(function(){
 ${lobby}
 ${ui}

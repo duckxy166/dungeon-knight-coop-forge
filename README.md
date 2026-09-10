@@ -1,12 +1,14 @@
 # Dungeon Knight: Infinite Arsenal v1.9.2
 
-Dungeon Knight is a geometric canvas roguelite with endless waves, four classes, sixteen biomes, an in-world Armory, crafting, 130 built-in weapons, and one-to-four-player co-op. This v1.9.2 patch restores the exact v1.9.1 weapon definitions, held models, projectile render paths, colors, muzzle effects, impact effects, Legendary sigils, and Mythical sigils. The later global beauty-profile overlay is removed; weapon identity once again comes from each weapon's own authored module.
+Dungeon Knight is now a Three.js low-poly 3D roguelite with a fixed angled overhead camera. Combat remains on a flat plane, with the original four classes, sixteen biomes, 130 weapons, crafting, Weapon Maker, and co-op simulation. See [3D rendering, mod models, and verification](docs/THREE_JS_MIGRATION.md).
+
+Run `npm ci`, `npm run build`, then `npm run preview` for local singleplayer, or open the offline HTML in `dist/`. This checkout is missing `server.mjs`, so the multiplayer service cannot start until that file is restored.
 
 Every biome now also has a rare native signature enemy in addition to its existing adapted enemy skins. These sixteen enemies have their own silhouettes, movement roles, telegraphs, and mechanics. Cloud Bastion, Gilded Archive, Glass Observatory, and Neon Marsh received new landscape compositions and wall plans that protect their bridges, shelves, facets, pools, and central travel lanes. Mobile layout editing and the live controls share one viewport coordinate system, and the Mods loadout uses verified persistent switches with an explicit Apply flow.
 
 Gameplay remains fixed-step and display-FPS independent. Low, Balanced, and Full effect budgets plus adaptive load shedding still govern particles and biome atmosphere without changing simulation results, multiplayer authority, or weapon damage.
 
-The project uses plain HTML, CSS, and JavaScript. It has no runtime npm dependencies, framework, database, or account system.
+The project uses plain HTML, CSS, JavaScript, and Three.js. esbuild bundles the renderer locally; no CDN is needed. No UI framework, database, or account system is required.
 
 ## Included versions
 

@@ -30,7 +30,8 @@
 
     var frozen = false;
     var freeCamActive = false;
-    var overlayVisible = true;
+    /** Off until a freeze starts or 3/F6 asks for it, so the readout never sits on the HUD. */
+    var overlayVisible = false;
     var frame = 0;
     var tick = 0;
     var pendingSteps = 0;
@@ -79,6 +80,7 @@
     function freeze(reason) {
         if (frozen || !isAllowed()) return;
         frozen = true;
+        overlayVisible = true;
         if (document.getAnimations) {
             pausedAnimations = document.getAnimations().filter(function (a) { return a.playState === 'running'; });
             pausedAnimations.forEach(function (a) { try { a.pause(); } catch (e) {} });
@@ -93,6 +95,7 @@
     function thaw() {
         if (!frozen) return;
         frozen = false;
+        overlayVisible = false;
         freeCamActive = false;
         pendingSteps = 0;
         pausedAnimations.forEach(function (a) { try { a.play(); } catch (e) {} });
@@ -165,7 +168,8 @@
         var el = document.createElement('div');
         el.id = '__dk_freeze_overlay__';
         var style = el.style;
-        style.position = 'fixed'; style.top = '8px'; style.left = '8px'; style.zIndex = '2147483647';
+        style.position = 'fixed'; style.right = '8px'; style.bottom = '8px'; style.zIndex = '2147483647';
+        style.textAlign = 'right';
         style.pointerEvents = 'none';
         style.font = '11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace';
         style.color = '#9fe'; style.textShadow = '0 0 3px #000, 0 0 3px #000';

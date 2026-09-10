@@ -170,37 +170,36 @@
 
         // Weapons
         'weapon.gun': {
-            urls: ['assets/audio/game/shot.mp3'],
-            bus: 'combat', gain: 0.7, pitchRange: 0.05, maxVoices: 5, priority: 65, synthFallback: 'crack'
+            urls: ['assets/audio/soft/gun.wav'],
+            bus: 'combat', gain: 0.4, cooldownMs: 90, maxVoices: 2, priority: 65, synthFallback: 'thump'
         },
         'weapon.shotgun': {
-            urls: ['assets/audio/game/shot.mp3'],
-            layer: 'hit.heavy', layerGain: 0.3,
-            bus: 'combat', gain: 0.85, pitchRange: 0.04, maxVoices: 4, priority: 70, synthFallback: 'crack'
+            urls: ['assets/audio/soft/heavy.wav'],
+            bus: 'combat', gain: 0.48, cooldownMs: 130, maxVoices: 2, priority: 65, synthFallback: 'thump'
         },
         'weapon.launcher': {
-            urls: ['assets/audio/game/shot.mp3'],
-            bus: 'combat', gain: 0.85, pitch: 0.7, pitchRange: 0.03, maxVoices: 4, priority: 70, synthFallback: 'thump'
+            urls: ['assets/audio/soft/heavy.wav'],
+            bus: 'combat', gain: 0.5, cooldownMs: 140, maxVoices: 2, priority: 65, synthFallback: 'thump'
         },
         'weapon.melee': {
-            urls: ['assets/audio/game/dash_2.mp3'],
-            bus: 'combat', gain: 0.65, pitchRange: 0.06, priority: 60, synthFallback: 'hiss'
+            urls: ['assets/audio/soft/swing.wav'],
+            bus: 'combat', gain: 0.38, cooldownMs: 100, maxVoices: 2, priority: 65, synthFallback: 'thump'
         },
         'weapon.bow.charge': {
-            urls: ['assets/audio/game/charge_shot.mp3'],
-            bus: 'combat', gain: 0.6, cooldownMs: 300, priority: 55, synthFallback: 'chime'
+            urls: ['assets/audio/soft/magic.wav'],
+            bus: 'combat', gain: 0.24, cooldownMs: 300, maxVoices: 2, priority: 65, synthFallback: 'thump'
         },
         'weapon.bow.release': {
-            urls: ['assets/audio/game/lazer_short.mp3'],
-            bus: 'combat', gain: 0.7, pitchRange: 0.05, priority: 65, synthFallback: 'crack'
+            urls: ['assets/audio/soft/bow.wav'],
+            bus: 'combat', gain: 0.38, cooldownMs: 100, maxVoices: 2, priority: 65, synthFallback: 'thump'
         },
         'weapon.magic': {
-            urls: ['assets/audio/game/lazer_short.mp3'],
-            bus: 'combat', gain: 0.7, pitchRange: 0.05, priority: 65, synthFallback: 'crack'
+            urls: ['assets/audio/soft/magic.wav'],
+            bus: 'combat', gain: 0.36, cooldownMs: 120, maxVoices: 2, priority: 65, synthFallback: 'thump'
         },
         'weapon.beam': {
-            urls: ['assets/audio/game/lazer_long.mp3'],
-            bus: 'combat', gain: 0.65, priority: 65, synthFallback: 'hiss'
+            urls: ['assets/audio/soft/magic.wav'],
+            bus: 'combat', gain: 0.32, cooldownMs: 160, maxVoices: 2, priority: 65, synthFallback: 'thump'
         },
 
         // Combat Impacts
@@ -759,7 +758,7 @@
     }
 
     function play(eventId, options) {
-        if (!eventId || eventId === 'none') return null;
+        if (!eventId || eventId === 'none' || eventId.indexOf('player.step.') === 0) return null;
         options = options || {};
         var now = performance.now();
 

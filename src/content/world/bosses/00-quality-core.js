@@ -334,6 +334,7 @@
     c.lineCap = 'round';
   }
   function drawBossBody(boss, api) {
+    if (api.ctx.isWorld3D) return; // The body is a lit 3D model; warnings remain authored vectors.
     var c = api.ctx,
       t = api.visualTick(),
       k = boss.bossKey;

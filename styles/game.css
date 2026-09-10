@@ -33,6 +33,10 @@ button { font: inherit; }
 button, input, select, textarea { -webkit-appearance: none; appearance: none; outline: none; }
 button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 1px solid var(--gold); outline-offset: 3px; }
 #gameCanvas { display: block; width: 100vw; height: 100vh; }
+.world3d-labels { position:fixed; inset:0; z-index:1; pointer-events:none; overflow:hidden; }
+.world3d-labels span { position:absolute; left:0; top:0; font:600 11px Ubuntu, 'Noto Sans Thai', sans-serif; text-shadow:0 1px 3px #000,0 0 4px #000; white-space:nowrap; }
+.world3d-message { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); z-index:100; max-width:90vw; padding:16px 24px; background:#171724; color:#ffe0c0; border:1px solid #9c7258; font:14px Ubuntu,sans-serif; }
+.world3d-message[hidden],.world3d-labels[hidden],.world3d-labels span[hidden] { display:none; }
 
 #ui-layer {
     position: absolute;

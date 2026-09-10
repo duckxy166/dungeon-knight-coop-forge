@@ -24,7 +24,7 @@
     ].map(function (path) { return { path:path, optional:false }; });
     var loader = window.DKLoader;
     var baseFiles = 9;
-    var totalScripts = content.length + preRuntime.length + runtime.length;
+    var totalScripts = content.length + preRuntime.length + runtime.length + 1;
 
     if (loader) loader.configure(baseFiles + totalScripts, baseFiles);
 
@@ -59,6 +59,8 @@
     }
 
     window.DK_BOOT_PROMISE = loadBatch(content)
+        .then(function () { return load({path:'src/render3d.bundle.js',optional:false}); })
+        .then(function () { window.DK3D.captureBuiltins(); })
         .then(function () { return loadBatch(preRuntime); })
         .then(function () {
             if (window.DKMods && typeof window.DKMods.bootstrap === 'function') return window.DKMods.bootstrap();
